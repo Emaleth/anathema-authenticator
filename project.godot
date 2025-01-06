@@ -14,3 +14,7 @@ config/name="Anathema Authenticator"
 run/main_scene="res://authenticator.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+NewScript="*res://new_script.gd"
