@@ -31,19 +31,21 @@ func gateway_to_authenticator_authenticate_player(player_id, _username, _passwor
 	print("auth request recived")
 	var gateway_id = multiplayer.get_remote_sender_id()
 	var result
+	var uuid
 	print("starting auth")
 	if not NewScript.player_ids.has(_username):
 		print("user not recognized")
 		result = false
-	elif not NewScript.player_ids[_username] == _password:
+	elif not NewScript.player_ids[_username].password == _password:
 		print("incorrect password")
 		result = false
 	else:
+		uuid = NewScript.player_ids[_username].uuid
 		print("succesful auth")
 		result = true
 	print("auth result sent to gatewa")
-	authenticator_to_gateway_authenticate_player(gateway_id, result, player_id)
+	authenticator_to_gateway_authenticate_player(gateway_id, result, player_id, uuid)
 
 @rpc("reliable")
-func authenticator_to_gateway_authenticate_player(gateway_id, result, player_id):
-	multiplayer.rpc(gateway_id, self, "authenticator_to_gateway_authenticate_player", [result, player_id])
+func authenticator_to_gateway_authenticate_player(gateway_id, result, player_id, uuid):
+	multiplayer.rpc(gateway_id, self, "authenticator_to_gateway_authenticate_player", [result, player_id, uuid])
