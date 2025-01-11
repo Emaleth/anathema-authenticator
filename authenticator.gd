@@ -29,9 +29,9 @@ func _Peer_Disconnected(gateway_id):
 @rpc("any_peer", "reliable")
 func gateway_to_authenticator_authenticate_player(player_id, _username, _password):
 	print("auth request recived")
+	var token
 	var gateway_id = multiplayer.get_remote_sender_id()
 	var result
-	var uuid
 	print("starting auth")
 	if not NewScript.player_ids.has(_username):
 		print("user not recognized")
@@ -40,12 +40,24 @@ func gateway_to_authenticator_authenticate_player(player_id, _username, _passwor
 		print("incorrect password")
 		result = false
 	else:
-		uuid = NewScript.player_ids[_username].uuid
 		print("succesful auth")
 		result = true
-	print("auth result sent to gatewa")
-	authenticator_to_gateway_authenticate_player(gateway_id, result, player_id, uuid)
+
+		randomize()
+		var random_number = randi()
+		#print(random_number)
+		var hashed = str(random_number).sha256_text()
+		#print(hashed)
+		var timestamp = str(int(Time.get_unix_time_from_system()))
+		#print(timestamp)
+		token = hashed + timestamp
+		print(token)
+		var gameserver = "GameServer1"
+		GameServers.authenticator_to_server_DistributeLoginToken(token, gameserver)
+
+	authenticator_to_gateway_authenticate_player(gateway_id, result, player_id, token)
+	print("auth result sent to gateway")
 
 @rpc("reliable")
-func authenticator_to_gateway_authenticate_player(gateway_id, result, player_id, uuid):
-	multiplayer.rpc(gateway_id, self, "authenticator_to_gateway_authenticate_player", [result, player_id, uuid])
+func authenticator_to_gateway_authenticate_player(gateway_id, result, player_id, token):
+	multiplayer.rpc(gateway_id, self, "authenticator_to_gateway_authenticate_player", [result, player_id, token])
