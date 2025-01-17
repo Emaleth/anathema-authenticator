@@ -35,6 +35,6 @@ func _Peer_Disconnected(gameserver_id):
 	print("Game Server " + str(gameserver_id) + " Disconnected")
 
 @rpc("reliable")
-func authenticator_to_server_DistributeLoginToken(token, gameserver):
+func authenticator_to_server_DistributeLoginToken(token, gameserver, uuid):
 	var gameserver_peer_id = gameserverlist[gameserver]
-	gateway_api.rpc(gameserver_peer_id, self, "authenticator_to_server_DistributeLoginToken", [token])
+	gateway_api.rpc(gameserver_peer_id, self, "authenticator_to_server_DistributeLoginToken", [token, uuid])

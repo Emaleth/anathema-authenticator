@@ -33,11 +33,11 @@ func gateway_to_authenticator_authenticate_player(player_id, _username, _passwor
 	var gateway_id = multiplayer.get_remote_sender_id()
 	var result
 	print("starting auth")
-	if not NewScript.player_ids.has(_username):
+	if not AccountDatabase.data.has(_username):
 		print("user not recognized")
 		result = false
 	else:
-		if not NewScript.player_ids[_username].password == generate_hashed_password(_password, NewScript.player_ids[_username].salt):
+		if not AccountDatabase.data[_username].password == generate_hashed_password(_password, AccountDatabase.data[_username].salt):
 			print("incorrect password")
 			result = false
 		else:
@@ -54,7 +54,8 @@ func gateway_to_authenticator_authenticate_player(player_id, _username, _passwor
 			token = hashed + timestamp
 			print(token)
 			var gameserver = "GameServer1"
-			GameServers.authenticator_to_server_DistributeLoginToken(token, gameserver)
+			var uuid = AccountDatabase.data[_username].uuid
+			GameServers.authenticator_to_server_DistributeLoginToken(token, gameserver, uuid)
 
 	authenticator_to_gateway_authenticate_player(gateway_id, result, player_id, token)
 	print("auth result sent to gateway")
@@ -64,11 +65,11 @@ func authenticator_to_gateway_authenticate_player(gateway_id, result, player_id,
 	multiplayer.rpc(gateway_id, self, "authenticator_to_gateway_authenticate_player", [result, player_id, token])
 
 @rpc("reliable", "any_peer")
-func gateway_to_authenticator_create_account(_username, _password, player_id):
+func gateway_to_authenticator_create_account(_username : String, _password, player_id):
 	var gateway_id = multiplayer.get_remote_sender_id()
 	var result
 	var message
-	if NewScript.player_ids.has(_username):
+	if AccountDatabase.data.has(_username):
 		result = false
 		message = 2
 	else:
@@ -76,9 +77,12 @@ func gateway_to_authenticator_create_account(_username, _password, player_id):
 		message = 3
 		var salt = generate_salt()
 		var hashed_password = generate_hashed_password(_password, salt)
-		NewScript.player_ids[_username] = {"password" : hashed_password, "salt" : salt}
+		var creation_timestamp = Time.get_unix_time_from_system()
+		var uuid = _username.md5_text()
+		AccountDatabase.data[_username] = {"uuid" : uuid, "password" : hashed_password, "salt" : salt, "creation_timestamp" : creation_timestamp}
 	authenticator_to_gateway_create_account(result, player_id, gateway_id, message)
-	print(NewScript.player_ids)
+	AccountDatabase.save_account_database()
+	print(AccountDatabase.data)
 
 @rpc("reliable")
 func authenticator_to_gateway_create_account(result, player_id, gateway_id, message):

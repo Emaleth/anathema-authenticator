@@ -17,5 +17,5 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-NewScript="*res://new_script.gd"
 GameServers="*res://game_servers.gd"
+AccountDatabase="*res://account_database.gd"
